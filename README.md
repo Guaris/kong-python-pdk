@@ -125,17 +125,25 @@ usage: kong-python-pluginserver [-h] [-p prefix] [-v] [--version] [--socket-name
 Kong Python Plugin Server.
 
 optional arguments:
-  -h, --help            show help message and exit
-  -p prefix             socket path prefix (default: /usr/local/kong/)
-  -v, --verbose         enable verbose logging
-  --socket-name         name of the socket file
-  --listen-queue-size   socket listen queue size
-  --no-lua-style        switch to Python-style error handling (default: False)
-  -m                    enable multiprocessing
-  -g                    enable gevent
-  -d directory          plugin directory path
-  --dump-plugin-info    dump info for one plugin
-  --dump-all-plugins    dump info for all plugins
+  -h, --help            show this help message and exit
+  -p prefix, --kong-prefix prefix, -kong-prefix prefix
+                        unix domain socket path to listen (default: /usr/local/kong/)
+  -v, --verbose         turn on verbose logging (default: 1)
+  --version, -version   show program's version number and exit
+  --socket-name SOCKET_NAME
+                        socket name to listen on (default: python_pluginserver.sock)
+  --listen-queue-size LISTEN_QUEUE_SIZE
+                        socket listen queue size (default: 4096)
+  --no-lua-style        turn off Lua-style "data, err" return values for PDK functions and throw exception instead (default: False)
+  -m, --multiprocessing
+                        enable multiprocessing (default: False)
+  -g, --gevent          enable gevent (default: False)
+  -d directory, --plugins-directory directory, -plugins-directory directory
+                        plugins directory
+  --dump-plugin-info name, -dump-plugin-info name
+                        dump specific plugin info into stdout
+  --dump-all-plugins, -dump-all-plugins
+                        dump all plugins info into stdout
 ```
 
 ## API Reference
@@ -153,26 +161,22 @@ make deps && make html
 
 ## Deprecation Notice
 
-In the next major release, the PDK will use Python-style error handling by default.
-
-**Old Lua-style API:**
+In next major release of Kong Python PDK, return values will default to use Python style error handling instead of
+Lua style. The new style API can be turned on now with `--no-lua-style`.
 
 ```python
+# old lua-style PDK API
 host, err = kong.request.get_header("host")
 if err:
-    handle_error(err)
-```
+    pass # error handling
 
-**New Python-style API:**
-
-```python
+# new python-style PDK API
 try:
     host = kong.request.get_header("host")
+    # no err in return, instead they are thrown if any
 except Exception as ex:
-    handle_error(ex)
+    pass # error handling
 ```
-
-Enable this now with `--no-lua-style`.
 
 ## TODO
 
