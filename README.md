@@ -158,6 +158,34 @@ git worktree add docs/build/html gh-pages
 cd docs
 make deps && make html
 ```
+## Using in Containers or Kubernetes
+
+To run Python plugins inside a containerized Gateway, you must ensure the plugin server and plugin code are installed within the Kong container.
+
+Note: Official Kong images run as the `nobody` user. When building a custom image, temporarily switch to `root` to copy dependencies.
+
+Example `Dockerfile`:
+
+```dockerfile
+FROM kong
+USER root
+
+# Install Python dependencies and the PDK
+RUN apk update && \
+    apk add python3 py3-pip python3-dev musl-dev libffi-dev gcc g++ file make && \
+    PYTHONWARNINGS=ignore pip3 install kong-pdk
+
+# Copy your plugin code into the image
+COPY your-py-plugin /path/to/your/py-plugins/your-py-plugin
+
+USER kong
+ENTRYPOINT ["/docker-entrypoint.sh"]
+EXPOSE 8000 8443 8001 8444
+STOPSIGNAL SIGQUIT
+HEALTHCHECK --interval=10s --timeout=10s --retries=10 CMD kong health
+CMD ["kong", "docker-start"]
+```
+
 
 ## Deprecation Notice
 
